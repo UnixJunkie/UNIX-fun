@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#set -x # debug
+
+# install rpm or deb packages depending on the system
+
+if [ $# -ne 2 ] ; then
+    echo "error: wrong number of parameters"
+    #             0   1             2
+    echo "usage: "$0" add|rm|search pkg_name"
+    exit 1
+fi
+
+add_or_remove=$1
+what=$2
+
+redhat_or_debian_clone="unknown"
+if [ -e /etc/debian_version ] ; then
+    redhat_or_debian_clone="debian"
+elif [ -e /etc/redhat-release ] ; then
+    redhat_or_debian_clone="redhat"
+fi
+
+add_cmd="unknown"
+rm_cmd="unknown"
+search_cmd="unknown"
+
+case "$redhat_or_debian_clone" in
+  debian) add_cmd="sudo aptitude install "$what
+          rm_cmd="sudo aptitude remove "$what
+          search_cmd="aptitude search "$what
+          ;;
+  redhat) add_cmd="sudo yum install "$what
+          rm_cmd="sudo yum remove "$what
+          search_cmd="sudo yum search "$what
+          ;;
+  *     ) echo "error: neither a debian nor a redhat clone"
+          exit 1
+          ;;
+esac
+
+case "$add_or_remove" in
+  add    ) $add_cmd
+           ;;
+  rm     ) $rm_cmd
+           ;;
+  search ) $search_cmd
+           ;;
+  *      ) echo "error: wrong command, use add or rm or search"
+           exit 1
+           ;;
+esac
