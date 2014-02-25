@@ -1,18 +1,25 @@
 #!/bin/bash
 
 #set -x # debug
+set -u # fail on undefined
+set -e # quit on errors
 
-# install rpm or deb packages depending on the system
-
-if [ $# -ne 2 ] ; then
+function usage() {
     echo "error: wrong number of parameters"
-    #             0   1             2
-    echo "usage: "$0" add|rm|search pkg_name"
+    #             0   1                          2
+    echo "usage: "$0" a[dd]|r[m]|s[earch]|i[nfo] pkg_name"
     exit 1
+}
+
+if [ $# -lt 2 ] ; then
+    usage
 fi
 
-add_or_remove=$1
-what=$2
+# TODO add a dry-run mode
+
+command=$1
+shift
+what="$@"
 
 redhat_or_debian_clone="unknown"
 if [ -e /etc/debian_version ] ; then
@@ -21,32 +28,36 @@ elif [ -e /etc/redhat-release ] ; then
     redhat_or_debian_clone="redhat"
 fi
 
-add_cmd="unknown"
-rm_cmd="unknown"
-search_cmd="unknown"
+add="unknown"
+remove="unknown"
+search="unknown"
+info="unknown"
 
 case "$redhat_or_debian_clone" in
-  debian) add_cmd="sudo aptitude install "$what
-          rm_cmd="sudo aptitude remove "$what
-          search_cmd="aptitude search "$what
+  debian) add="sudo aptitude install "$what
+          remove="sudo aptitude remove "$what
+          search="aptitude search "$what
+          info="aptitude show "$what
           ;;
-  redhat) add_cmd="sudo yum install "$what
-          rm_cmd="sudo yum remove "$what
-          search_cmd="sudo yum search "$what
+  redhat) add="sudo yum install "$what
+          remove="sudo yum remove "$what
+          search="yum search "$what
+          info="yum info "$what
           ;;
   *     ) echo "error: neither a debian nor a redhat clone"
           exit 1
           ;;
 esac
 
-case "$add_or_remove" in
-  add    ) $add_cmd
+case "$command" in
+  a*     ) $add
            ;;
-  rm     ) $rm_cmd
+  r*     ) $remove
            ;;
-  search ) $search_cmd
+  s*     ) $search
            ;;
-  *      ) echo "error: wrong command, use add or rm or search"
-           exit 1
+  i*     ) $info
+           ;;
+  *      ) usage
            ;;
 esac
