@@ -1,0 +1,49 @@
+#!/bin/bash
+
+#set -x
+
+# generic file opener inspired by the plumber tool from Plan 9
+# cf. http://doc.cat-v.org/plan_9/4th_edition/papers/plumb
+
+if [ "$#" != 1 ] ; then
+    echo "usage: "$0" input_file"
+    exit 1
+fi
+
+if [ "$1" == "EDIT" ] ; then
+    emacs $0 &
+    exit 0
+fi
+
+input=$1
+
+extension=`echo $input | awk -F'.' '{print $NF}'`
+
+case $extension in
+  txt|sh|c|h|ml[i]|py|tex)
+    emacs $input &
+    ;;
+  csv|ods)
+    libreoffice $input &
+    ;;
+  pdf)
+    evince $input &
+    ;;
+  mp3)
+    nvlc $input &
+    ;;
+  mpg|mpeg|avi)
+    vlc $input &
+    ;;
+  jpg|jpeg|bmp|png|tif|gif)
+    eog $input &
+    ;;
+  [e]ps)
+    evince $input &
+    ;;
+  *)
+    echo "FATAL: don't know how to open "$input
+    echo "type 'op EDIT' to edit "$0
+    exit 1
+  ;;
+esac
