@@ -5,13 +5,45 @@
 # generic file opener inspired by the plumber tool from Plan 9
 # cf. http://doc.cat-v.org/plan_9/4th_edition/papers/plumb
 
+OPRC=${HOME}/.oprc
+
+if [[ -z $EDITOR ]]
+then
+    echo "Editor is not set"
+    $EDITOR="emacs"
+fi
+
+DEFAULTLIST="txt:${EDITOR}
+	sh:${EDITOR}
+	c:${EDITOR}
+	h:${EDITOR}
+	ml:${EDITOR}
+	mli:${EDITOR}
+	py:${EDITOR}
+	tex:${EDITOR}
+	csv:libreoffice
+	ods:libreoffice
+	pdf:evince
+	mp3:nvlc
+	mpg:vlc
+	mpeg:vlc
+	avi:vlc
+	jpg:eog
+	jpeg:eog
+	bmp:eog
+	png:eog
+	tif:eog
+	gif:eog
+	ps:evince
+	eps:evince"
+
 if [ "$#" != 1 ] ; then
     echo "usage: "$0" input_file"
     exit 1
 fi
 
 if [ "$1" == "EDIT" ] ; then
-    emacs $0 &
+    ${EDITOR} ${OPRC} &
     exit 0
 fi
 
@@ -19,31 +51,34 @@ input=$1
 
 extension=`echo $input | awk -F'.' '{print $NF}'`
 
-case $extension in
-  txt|sh|c|h|ml[i]|py|tex)
-    emacs $input &
-    ;;
-  csv|ods)
-    libreoffice $input &
-    ;;
-  pdf)
-    evince $input &
-    ;;
-  mp3)
-    nvlc $input &
-    ;;
-  mpg|mpeg|avi)
-    vlc $input &
-    ;;
-  jpg|jpeg|bmp|png|tif|gif)
-    eog $input &
-    ;;
-  [e]ps)
-    evince $input &
-    ;;
-  *)
+
+if [ ! -f ${OPRC} ] 
+then
+   lst=${DEFAULTLIST}
+   for p in $lst 
+   do
+	echo ${p} >> ${OPRC}
+   done
+else
+   lst=$(cat ${HOME}/.oprc)
+fi
+
+found=0
+
+for p in $lst 
+do
+    ext=`echo $p | awk -F':' '{print $1}'`
+    app=`echo $p | awk -F':' '{print $2}'`
+    if [[ $ext == $extension ]]
+    then
+	found=1
+	$app $1 &
+    fi
+done
+
+if [[ $found == 0 ]]
+then
     echo "FATAL: don't know how to open "$input
-    echo "type 'op EDIT' to edit "$0
+    echo "type 'op EDIT' to edit the association list"
     exit 1
-  ;;
-esac
+fi
