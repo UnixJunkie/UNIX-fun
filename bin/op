@@ -7,8 +7,7 @@
 
 OPRC=${HOME}/.oprc
 
-if [[ -z $EDITOR ]]
-then
+if [[ -z $EDITOR ]] ; then
     echo "Editor is not set"
     $EDITOR="emacs"
 fi
@@ -40,44 +39,35 @@ DEFAULTLIST="txt:${EDITOR}
 if [ "$#" != 1 ] ; then
     echo "usage: "$0" input_file"
     exit 1
-fi
-
-if [ "$1" == "EDIT" ] ; then
-    ${EDITOR} ${OPRC} &
+elif [ "$1" == "EDIT" ] ; then
+    ${EDITOR} ${OPRC}
     exit 0
 fi
 
 input=$1
-
 extension=`echo $input | awk -F'.' '{print $NF}'`
 
-
-if [ ! -f ${OPRC} ] 
-then
-   lst=${DEFAULTLIST}
-   for p in $lst 
-   do
-	echo ${p} >> ${OPRC}
-   done
+if [ ! -f ${OPRC} ] ; then
+    lst=${DEFAULTLIST}
+    for p in $lst ; do
+        echo ${p} >> ${OPRC}
+    done
 else
-   lst=$(cat ${HOME}/.oprc)
+    lst=$(cat ${HOME}/.oprc)
 fi
 
 found=0
 
-for p in $lst 
-do
+for p in $lst ; do
     ext=`echo $p | awk -F':' '{print $1}'`
     app=`echo $p | awk -F':' '{print $2}'`
-    if [[ $ext == $extension ]]
-    then
+    if [[ $ext == $extension ]] ; then
 	found=1
 	$app $1 &
     fi
 done
 
-if [[ $found == 0 ]]
-then
+if [[ $found == 0 ]] ; then
     echo "FATAL: don't know how to open "$input
     echo "type 'op EDIT' to edit the association list"
     exit 1
