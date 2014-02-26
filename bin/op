@@ -7,14 +7,20 @@
 
 OPRC=${HOME}/.oprc
 
-DEFAULTLIST="txt:emacs
-	sh:emacs
-	c:emacs
-	h:emacs
-	ml:emacs
-	mli:emacs
-	py:emacs
-	tex:emacs
+if [[ -z $EDITOR ]]
+then
+    echo "Editor is not set"
+    $EDITOR="emacs"
+fi
+
+DEFAULTLIST="txt:${EDITOR}
+	sh:${EDITOR}
+	c:${EDITOR}
+	h:${EDITOR}
+	ml:${EDITOR}
+	mli:${EDITOR}
+	py:${EDITOR}
+	tex:${EDITOR}
 	csv:libreoffice
 	ods:libreoffice
 	pdf:evince
@@ -37,7 +43,7 @@ if [ "$#" != 1 ] ; then
 fi
 
 if [ "$1" == "EDIT" ] ; then
-    emacs ${OPRC} &
+    ${EDITOR} ${OPRC} &
     exit 0
 fi
 
@@ -65,9 +71,8 @@ do
     app=`echo $p | awk -F':' '{print $2}'`
     if [[ $ext == $extension ]]
     then
-        echo $ext "s ouvre avec " $app
 	found=1
-#	$app $1 &
+	$app $1 &
     fi
 done
 
