@@ -8,44 +8,45 @@
 OPRC=${HOME}/.oprc
 
 if [[ -z $EDITOR ]] ; then
-    echo "Editor is not set"
-    $EDITOR="emacs"
+    EDITOR="emacs" # the best editor on Earth
 fi
 
-DEFAULTLIST="txt:${EDITOR}
-	sh:${EDITOR}
-	c:${EDITOR}
-	h:${EDITOR}
-	ml:${EDITOR}
-	mli:${EDITOR}
-	py:${EDITOR}
-	tex:${EDITOR}
-	csv:libreoffice
-	ods:libreoffice
-	pdf:evince
-	mp3:nvlc
-	mpg:vlc
-	mpeg:vlc
-	avi:vlc
-	jpg:eog
-	jpeg:eog
-	bmp:eog
-	png:eog
-	tif:eog
-	gif:eog
-	ps:evince
-	eps:evince"
+# keep the list sorted so that users can edit it quickly
+DEFAULTLIST="avi:vlc
+             bmp:eog
+             c:${EDITOR}
+             csv:libreoffice
+             eps:evince
+             gif:eog
+             h:${EDITOR}
+             html:firefox
+             jpeg:eog
+             jpg:eog
+             ml:${EDITOR}
+             mli:${EDITOR}
+             mp3:nvlc
+             mpeg:vlc
+             mpg:vlc
+             ods:libreoffice
+             pdf:evince
+             png:eog
+             ps:evince
+             py:${EDITOR}
+             sh:${EDITOR}
+             tex:${EDITOR}
+             tif:eog
+             txt:${EDITOR}"
+
+input=$1
+extension=`echo $input | awk -F'.' '{print $NF}'`
 
 if [ "$#" != 1 ] ; then
     echo "usage: "$0" input_file"
     exit 1
-elif [ "$1" == "EDIT" ] ; then
+elif [ "$input" == "EDIT" ] ; then
     ${EDITOR} ${OPRC}
     exit 0
 fi
-
-input=$1
-extension=`echo $input | awk -F'.' '{print $NF}'`
 
 if [ ! -f ${OPRC} ] ; then
     lst=${DEFAULTLIST}
@@ -59,11 +60,11 @@ fi
 found=0
 
 for p in $lst ; do
-    ext=`echo $p | awk -F':' '{print $1}'`
-    app=`echo $p | awk -F':' '{print $2}'`
-    if [[ $ext == $extension ]] ; then
-	found=1
-	$app $1 &
+    ext=$(echo $p | cut -d':' -f1)
+    app=$(echo $p | cut -d':' -f2)
+    if [ "$ext" == "$extension" ] ; then
+        found=1
+        $app $input &
     fi
 done
 
