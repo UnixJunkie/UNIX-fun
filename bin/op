@@ -11,32 +11,6 @@ if [[ -z $EDITOR ]] ; then
     EDITOR="emacs" # the best editor on Earth
 fi
 
-# keep the list sorted so that users can edit it quickly
-DEFAULTLIST="avi:vlc
-             bmp:eog
-             c:${EDITOR}
-             csv:libreoffice
-             eps:evince
-             gif:eog
-             h:${EDITOR}
-             html:firefox
-             jpeg:eog
-             jpg:eog
-             ml:${EDITOR}
-             mli:${EDITOR}
-             mp3:nvlc
-             mpeg:vlc
-             mpg:vlc
-             ods:libreoffice
-             pdf:evince
-             png:eog
-             ps:evince
-             py:${EDITOR}
-             sh:${EDITOR}
-             tex:${EDITOR}
-             tif:eog
-             txt:${EDITOR}"
-
 input=$1
 extension=`echo $input | awk -F'.' '{print $NF}'`
 
@@ -44,31 +18,52 @@ if [ "$#" != 1 ] ; then
     echo "usage: "$0" input_file"
     exit 1
 elif [ "$input" == "EDIT" ] ; then
-    ${EDITOR} ${OPRC}
+    $EDITOR $OPRC
     exit 0
 fi
 
-if [ ! -f ${OPRC} ] ; then
-    lst=${DEFAULTLIST}
-    for p in $lst ; do
-        echo ${p} >> ${OPRC}
-    done
-else
-    lst=$(cat ${HOME}/.oprc)
+if [ ! -f $OPRC ] ; then
+    # use defaults; keep them sorted
+    cat <<EOF > $OPRC
+avi:vlc
+bmp:eog
+c:$EDITOR
+csv:libreoffice
+eps:evince
+gif:eog
+h:$EDITOR
+html:firefox
+jpeg:eog
+jpg:eog
+ml:$EDITOR
+mli:$EDITOR
+mp3:nvlc
+mpeg:vlc
+mpg:vlc
+ods:libreoffice
+pdf:evince
+png:eog
+ps:evince
+py:$EDITOR
+sh:$EDITOR
+tex:$EDITOR
+tif:eog
+txt:$EDITOR
+EOF
 fi
 
 found=0
 
-for p in $lst ; do
-    ext=$(echo $p | cut -d':' -f1)
-    app=$(echo $p | cut -d':' -f2)
+while read line ; do
+    ext=`echo $line | cut -d':' -f1`
+    app=`echo $line | cut -d':' -f2`
     if [ "$ext" == "$extension" ] ; then
         found=1
         $app $input &
     fi
-done
+done < $OPRC
 
-if [[ $found == 0 ]] ; then
+if [ "$found" == 0 ] ; then
     echo "FATAL: don't know how to open "$input
     echo "type 'op EDIT' to edit the association list"
     exit 1
