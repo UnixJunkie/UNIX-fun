@@ -11,14 +11,14 @@ if [[ -z $EDITOR ]] ; then
     EDITOR="emacs" # the best editor on Earth
 fi
 
-input=$1
-extension=`echo $input | awk -F'.' '{print $NF}'`
-
-if [ "$#" != 1 ] ; then
+if [ "$#" == 0 ] ; then
     echo "usage: "$0" input_file"
     exit 1
-elif [ "$input" == "EDIT" ] ; then
+elif [ "$1" == "EDIT" ] ; then
     $EDITOR $OPRC
+    exit 0
+elif [ "$1" == "CORRECT" ] ; then
+    $EDITOR $0
     exit 0
 fi
 
@@ -52,19 +52,19 @@ txt:$EDITOR
 EOF
 fi
 
-found=0
-
-while read line ; do
-    ext=`echo $line | cut -d':' -f1`
-    app=`echo $line | cut -d':' -f2`
-    if [ "$ext" == "$extension" ] ; then
-        found=1
-        $app $input &
+for f in `echo "$@"` ; do
+    found=0
+    extension=`echo $f | awk -F'.' '{print $NF}'`
+    while read line ; do
+        ext=`echo $line | cut -d':' -f1`
+        app=`echo $line | cut -d':' -f2`
+        if [ "$ext" == "$extension" ] ; then
+            found=1
+            $app $f &
+        fi
+    done < $OPRC
+    if [ "$found" == 0 ] ; then
+        echo "ERROR: don't know how to open "$f
+        echo "type 'op EDIT' to edit the association list"
     fi
-done < $OPRC
-
-if [ "$found" == 0 ] ; then
-    echo "FATAL: don't know how to open "$input
-    echo "type 'op EDIT' to edit the association list"
-    exit 1
-fi
+done
