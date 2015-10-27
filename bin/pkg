@@ -6,12 +6,12 @@ set -e # quit on errors
 
 function usage() {
     echo "error: wrong number of parameters"
-    #             0   1                          2
-    echo "usage: "$0" a[dd]|r[m]|s[earch]|i[nfo] pkg_name"
+    #             0   1                                  2
+    echo "usage: "$0" a[dd]|c[lean]|r[m]|s[earch]|i[nfo] [pkg_name]"
     exit 1
 }
 
-if [ $# -lt 2 ] ; then
+if [ $# -lt 1 ] ; then
     usage
 fi
 
@@ -32,12 +32,14 @@ add="unknown"
 remove="unknown"
 search="unknown"
 info="unknown"
+clean="unknown"
 
 case "$redhat_or_debian_clone" in
-  debian) add="sudo aptitude install "$what
-          remove="sudo aptitude remove "$what
+  debian) add="sudo apt-get install "$what
+          remove="sudo apt-get remove "$what
           search="aptitude search "$what
           info="aptitude show "$what
+          clean="sudo apt-get autoremove"
           ;;
   redhat) add="sudo yum install "$what
           remove="sudo yum remove "$what
@@ -51,6 +53,8 @@ esac
 
 case "$command" in
   a*     ) $add
+           ;;
+  c*     ) $clean
            ;;
   r*     ) $remove
            ;;
