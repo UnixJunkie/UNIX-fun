@@ -6,8 +6,8 @@ set -e # quit on errors
 
 function usage() {
     echo "error: wrong number of parameters"
-    #             0   1                                  2
-    echo "usage: "$0" a[dd]|c[lean]|r[m]|s[earch]|i[nfo] [pkg_name]"
+    #             0   1                                          2
+    echo "usage: "$0" a[dd]|c[lean]|r[m]|s[earch]|i[nfo]|q[uery] [pkg_name]"
     exit 1
 }
 
@@ -33,6 +33,7 @@ remove="unknown"
 search="unknown"
 info="unknown"
 clean="unknown"
+query="unknown"
 
 case "$redhat_or_debian_clone" in
   debian) add="sudo apt-get install "$what
@@ -40,11 +41,14 @@ case "$redhat_or_debian_clone" in
           search="aptitude search "$what
           info="aptitude show "$what
           clean="sudo apt-get autoremove"
+          query="dpkg -S "$what
           ;;
   redhat) add="sudo yum install "$what
           remove="sudo yum remove "$what
           search="yum search "$what
           info="yum info "$what
+          clean="sudo yum clean all" # not like apt-get autoremove but ...
+          query="rpmquery --whatprovides "$what
           ;;
   *     ) echo "error: neither a debian nor a redhat clone"
           exit 1
@@ -61,6 +65,8 @@ case "$command" in
   s*     ) $search
            ;;
   i*     ) $info
+           ;;
+  q*     ) $query
            ;;
   *      ) usage
            ;;
