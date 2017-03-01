@@ -1,0 +1,11 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := ["batteries"];;
+--
+
+(* remove extension of given filename *)
+
+let () =
+  let s = Sys.argv.(1) in
+  let ext_start = BatString.rfind s "." in
+  let res = String.sub s 0 ext_start in
+  Printf.printf "%s\n" res
