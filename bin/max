@@ -1,0 +1,10 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := ["batteries"]
+--
+(* output the max number read on the line
+   they must be separated by tabs *)
+let () =
+  let line = input_line stdin in
+  let strings = BatString.nsplit line ~by:"\t" in
+  let floats = BatList.map float_of_string strings in
+  Printf.printf "%f\n" (BatList.max floats)
