@@ -18,5 +18,5 @@ let () =
     BatList.unfold_exc (fun () ->
      float_of_string (input_line stdin)
     ) in
-  assert(exn = End_of_file);
+  if exn <> End_of_file then raise exn;
   Printf.printf "%f\n" (median floats)
