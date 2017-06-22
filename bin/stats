@@ -1,0 +1,23 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := ["batteries"]
+--
+(* read one float per line from stdin (untile End_of_file);
+   then output the "minimum median maximum" of all numbers *)
+
+let median (l: float list): float =
+    let xs = Array.of_list l in
+    Array.sort BatFloat.compare xs;
+    let n = Array.length xs in
+    if n mod 2 = 1 then
+      xs.(n/2)
+    else
+      0.5 *. (xs.(n/2) +. xs.(n/2 - 1))
+
+let () =
+  let floats, exn =
+    BatList.unfold_exc (fun () ->
+        float_of_string (input_line stdin)
+    ) in
+  if exn <> End_of_file then raise exn;
+  let mini, maxi = BatList.min_max floats in
+  Printf.printf "%f %f %f\n" mini (median floats) maxi
