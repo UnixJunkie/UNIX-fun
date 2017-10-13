@@ -39,10 +39,10 @@ let op_of_str = function
 
 let () =
   let argc, args = CLI.init () in
-  if argc = 0 then
-    (eprintf "usage:\n\
-              !!! stdin must have one float per line !!!\n\
-              %s -ops min[,max[,avg[,med[,stddev]]]]" Sys.argv.(0);
+  if argc = 1 then
+    (eprintf "stdin must have one float per line\n\
+              usage:\n\
+              %s -ops min[,max[,avg[,med[,stddev]]]]\n" Sys.argv.(0);
      exit 1);
   let floats, exn =
     L.unfold_exc (fun () ->
