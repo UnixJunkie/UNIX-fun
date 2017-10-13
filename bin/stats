@@ -1,23 +1,62 @@
 #!/usr/bin/env ocamlscript
-Ocaml.packs := ["batteries"]
+Ocaml.packs := ["batteries";"minicli"]
 --
-(* read one float per line from stdin (untile End_of_file);
-   then output the "minimum median maximum" of all numbers *)
+(* read one float per line from stdin (until End_of_file);
+   then output whatever descriptive statistics the user has asked *)
+
+open Printf
+
+module L = BatList
 
 let median (l: float list): float =
-    let xs = Array.of_list l in
-    Array.sort BatFloat.compare xs;
-    let n = Array.length xs in
-    if n mod 2 = 1 then
-      xs.(n/2)
-    else
-      0.5 *. (xs.(n/2) +. xs.(n/2 - 1))
+  let xs = Array.of_list l in
+  Array.sort BatFloat.compare xs;
+  let n = Array.length xs in
+  if n mod 2 = 1 then
+    xs.(n/2)
+  else
+    0.5 *. (xs.(n/2) +. xs.(n/2 - 1))
+
+let stddev l =
+  let sqr x = x *. x in
+  let n, sx, sx2 =
+    List.fold_left
+      (fun (n, sx, sx2) x -> succ n, sx +. x, sx2 +. sqr x)
+      (0, 0., 0.) l
+  in
+  sqrt ((sx2 -. sqr sx /. float n) /. float n)
+
+let average l =
+  (L.fsum l) /. (float (L.length l))
+
+let op_of_str = function
+  | "min" -> L.min
+  | "max" -> L.max
+  | "med" -> median
+  | "stddev" -> stddev
+  | "avg" -> average
+  | other -> failwith ("op_of_str: unsupported op: " ^ other)
 
 let () =
+  let argc, args = CLI.init () in
+  if argc = 0 then
+    (eprintf "usage:\n\
+              !!! stdin must have one float per line !!!\n\
+              %s -ops min[,max[,avg[,med[,stddev]]]]" Sys.argv.(0);
+     exit 1);
   let floats, exn =
-    BatList.unfold_exc (fun () ->
+    L.unfold_exc (fun () ->
         float_of_string (input_line stdin)
-    ) in
+      ) in
   if exn <> End_of_file then raise exn;
-  let mini, maxi = BatList.min_max floats in
-  Printf.printf "%f %f %f\n" mini (median floats) maxi
+  let required_operations = CLI.get_string ["-ops"] args in
+  let operations = BatString.split_on_char ',' required_operations in
+  let ops = L.map op_of_str operations in
+  L.iteri (fun i op ->
+      let x = op floats in
+      if i = 0 then
+        printf "%f" x
+      else
+        printf " %f" x
+    ) ops;
+  printf "\n"
