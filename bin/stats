@@ -8,14 +8,8 @@ open Printf
 
 module L = BatList
 
-let median (l: float list): float =
-  let xs = Array.of_list l in
-  Array.sort BatFloat.compare xs;
-  let n = Array.length xs in
-  if n mod 2 = 1 then
-    xs.(n/2)
-  else
-    0.5 *. (xs.(n/2) +. xs.(n/2 - 1))
+let average l =
+  (L.fsum l) /. (float (L.length l))
 
 let stddev l =
   let sqr x = x *. x in
@@ -26,23 +20,39 @@ let stddev l =
   in
   sqrt ((sx2 -. sqr sx /. float n) /. float n)
 
-let average l =
-  (L.fsum l) /. (float (L.length l))
+let median (l: float list): float =
+  let xs = Array.of_list l in
+  Array.sort BatFloat.compare xs;
+  let n = Array.length xs in
+  if n mod 2 = 1 then
+    xs.(n/2)
+  else
+    0.5 *. (xs.(n/2) +. xs.(n/2 - 1))
+
+(* Median Absolute Deviation *)
+let mad l =
+  let med = median l in
+  let abs_devs = L.map (fun x -> abs_float (x -. med)) l in
+  median abs_devs
+(*$T mad
+  mad (map float [1;1;2;2;4;6;9]) = 1.
+*)
 
 let op_of_str = function
   | "min" -> L.min
   | "max" -> L.max
+  | "avg" -> average
   | "med" -> median
   | "stddev" -> stddev
-  | "avg" -> average
-  | other -> failwith ("op_of_str: unsupported op: " ^ other)
+  | "mad" -> mad
+  | other -> failwith ("Stats.op_of_str: unsupported op: " ^ other)
 
 let () =
   let argc, args = CLI.init () in
   if argc = 1 then
     (eprintf "stdin must have one float per line\n\
               usage:\n\
-              %s -ops min[,max[,avg[,med[,stddev]]]]\n" Sys.argv.(0);
+              %s -ops min[,max[,avg[,med[,stddev[,mad]]]]]\n" Sys.argv.(0);
      exit 1);
   let floats, exn =
     L.unfold_exc (fun () ->
@@ -55,8 +65,8 @@ let () =
   L.iteri (fun i op ->
       let x = op floats in
       if i = 0 then
-        printf "%f" x
+        printf "%.3f" x
       else
-        printf " %f" x
+        printf " %.3f" x
     ) ops;
   printf "\n"
