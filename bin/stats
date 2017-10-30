@@ -45,6 +45,7 @@ let op_of_str = function
   | "med" -> median
   | "stddev" -> stddev
   | "mad" -> mad
+  | "card" -> (fun l -> float (L.length l))
   | other -> failwith ("Stats.op_of_str: unsupported op: " ^ other)
 
 let () =
@@ -52,7 +53,7 @@ let () =
   if argc = 1 then
     (eprintf "stdin must have one float per line\n\
               usage:\n\
-              %s -ops min[,max[,avg[,med[,stddev[,mad]]]]]\n" Sys.argv.(0);
+              %s -ops card,min[,max[,avg[,med[,stddev[,mad]]]]]\n" Sys.argv.(0);
      exit 1);
   let floats, exn =
     L.unfold_exc (fun () ->
