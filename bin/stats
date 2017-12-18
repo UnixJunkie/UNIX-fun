@@ -2,50 +2,91 @@
 Ocaml.packs := ["batteries";"minicli"]
 --
 (* read one float per line from stdin (until End_of_file);
-   then output whatever descriptive statistics the user has asked *)
+   then output whatever descriptive statistics the user asked for *)
+
+let compose f g x =
+  f (g x)
 
 open Printf
 
-module L = BatList
+module L = struct
 
-let average l =
-  (L.fsum l) /. (float (L.length l))
+  include BatList
 
-let stddev l =
+  let to_string to_str l =
+    let buff = Buffer.create 80 in
+    Buffer.add_char buff '[';
+    iteri (fun i x ->
+        if i > 0 then Buffer.add_char buff ';';
+        Buffer.add_string buff (to_str x);
+      ) l;
+    Buffer.add_char buff ']';
+    Buffer.contents buff
+end
+
+type stat = Single of float
+          | Many of float list
+
+let read_stat = function
+  | Single x -> x
+  | Many _ -> assert(false)
+
+let str_of_stat = function
+  | Single x -> sprintf "%f" x
+  | Many xs -> L.to_string (sprintf "%f") xs
+
+let card l =
+  Single (float (L.length l))
+
+let average (l: float list): stat =
+  let n = read_stat (card l) in
+  Single ((L.fsum l) /. n)
+
+let stddev (l: float list): stat =
   let sqr x = x *. x in
   let n, sx, sx2 =
     List.fold_left
       (fun (n, sx, sx2) x -> succ n, sx +. x, sx2 +. sqr x)
       (0, 0., 0.) l
   in
-  sqrt ((sx2 -. sqr sx /. float n) /. float n)
+  Single (sqrt ((sx2 -. sqr sx /. float n) /. float n))
 
-let median (l: float list): float =
+(* number of stddevs away from the mean *)
+let zscore (l: float list): stat =
+  let avg = read_stat (average l) in
+  let std = read_stat (stddev l) in
+  Many (L.map (fun x -> (x -. avg) /. std) l)
+
+let median (l: float list): stat =
   let xs = Array.of_list l in
   Array.sort BatFloat.compare xs;
   let n = Array.length xs in
   if n mod 2 = 1 then
-    xs.(n/2)
+    Single xs.(n/2)
   else
-    0.5 *. (xs.(n/2) +. xs.(n/2 - 1))
+    Single (0.5 *. (xs.(n/2) +. xs.(n/2 - 1)))
 
 (* Median Absolute Deviation *)
 let mad l =
-  let med = median l in
+  let med = read_stat (median l) in
   let abs_devs = L.map (fun x -> abs_float (x -. med)) l in
-  median abs_devs
+  Single (read_stat (median abs_devs))
 (*$T mad
-  mad (map float [1;1;2;2;4;6;9]) = 1.
+  mad (map float [1;1;2;2;4;6;9]) = Single 1.0
 *)
 
+let single x =
+  Single x
+
 let op_of_str = function
-  | "min" -> L.min
-  | "max" -> L.max
+  | "min" -> compose single L.min
+  | "max" -> compose single L.max
   | "avg" -> average
   | "med" -> median
   | "stddev" -> stddev
+  | "zscore" -> zscore
   | "mad" -> mad
-  | "card" -> (fun l -> float (L.length l))
+  | "card" -> card
   | other -> failwith ("Stats.op_of_str: unsupported op: " ^ other)
 
 let () =
@@ -53,7 +94,7 @@ let () =
   if argc = 1 then
     (eprintf "stdin must have one float per line\n\
               usage:\n\
-              %s -ops card,min[,max[,avg[,med[,stddev[,mad]]]]]\n" Sys.argv.(0);
+              %s -ops {card[,min[,max[,avg[,med[,stddev[,zscore[,mad]...}\n" Sys.argv.(0);
      exit 1);
   let floats, exn =
     L.unfold_exc (fun () ->
@@ -64,10 +105,11 @@ let () =
   let operations = BatString.split_on_char ',' required_operations in
   let ops = L.map op_of_str operations in
   L.iteri (fun i op ->
-      let x = op floats in
+      let res = op floats in
+      let str = str_of_stat res in
       if i = 0 then
-        printf "%.3f" x
+        printf "%s" str
       else
-        printf " %.3f" x
+        printf " %s" str
     ) ops;
   printf "\n"
