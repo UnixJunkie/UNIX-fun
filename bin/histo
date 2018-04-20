@@ -1,0 +1,37 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := ["batteries";"minicli"]
+--
+(* read one float per line from stdin (until End_of_file);
+   then create an histogram of those values *)
+
+open Printf
+
+module L = BatList
+
+let () =
+  let argc, args = CLI.init () in
+  if argc = 1 then
+    (eprintf "stdin must have one float per line\n\
+              usage:\n\
+              cat data | %s > histogram.txt\n"
+       Sys.argv.(0);
+     exit 1);
+  let floats, exn =
+    L.unfold_exc (fun () ->
+        float_of_string (input_line stdin)
+      ) in
+  if exn <> End_of_file then raise exn;
+  let sorted = L.sort compare floats in
+  let nb_lines = float (L.length sorted) in
+  let xs = L.frange 0.0 `To 1.0 20 in
+  let histo =
+    let to_process = ref sorted in
+    L.map (fun x ->
+        let ok, ko = L.partition (fun y -> y <= x) !to_process in
+        to_process := ko;
+        (x, float (L.length ok) /. nb_lines)
+      ) xs in
+  let histogram = L.rev histo in
+  L.iter (fun (x, y) ->
+      printf "%f %f\n" x y
+    ) histogram
