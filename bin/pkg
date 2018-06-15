@@ -36,18 +36,18 @@ clean="unknown"
 query="unknown"
 
 case "$redhat_or_debian_clone" in
-  debian) add="sudo apt-get install "$what
-          remove="sudo apt-get remove "$what
+  debian) add="sudo apt install "$what
+          remove="sudo apt remove "$what
           search="aptitude search "$what
           info="aptitude show "$what
-          clean="sudo apt-get autoremove"
+          clean="sudo apt autoremove"
           query="dpkg -S "$what
           ;;
   redhat) add="sudo yum install "$what
           remove="sudo yum remove "$what
           search="yum search "$what
           info="yum info "$what
-          clean="sudo yum clean all" # not like apt-get autoremove but ...
+          clean="sudo yum clean all" # not like apt autoremove but ...
           query="rpmquery --whatprovides "$what
           ;;
   *     ) echo "error: neither a debian nor a redhat clone"
