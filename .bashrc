@@ -24,22 +24,30 @@ fi
 
 alias ..='cd ..'
 alias ayssh='ssh -AY'
+alias branch='git branch'
+alias b='branch'
 alias bgemacs='nohup emacs &'
-alias c='svn commit'
+alias bigrep='grep -A10 -B10 '
+alias c='git commit'
 alias countfiles='\ls -1 | wc -l'
 alias cp='cp -i'
-alias d='sdiff'
+alias d='gdiff'
+alias em='emacsclient --no-wait'
 alias enswitch='export LANG=en_US.UTF-8'
 alias frswitch='export LANG=fr_FR.UTF-8'
 alias jpswitch='export LANG=ja_JP.UTF-8'
-alias gcom='git commit'
+alias gc='git commit'
+alias gd='git diff'
 alias gpull='git pull'
 alias gpush='git push'
 alias gstat='git status'
 alias htop='nice htop'
 alias i='svn info'
+alias inject='eject -T'
+alias agrep='agrep --color'
 alias grep='grep --color'
 alias igrep='grep -i'
+alias jchempaint='java -jar ~/usr/jchempaint/jchempaint-3.3-1210.jar'
 alias l='ls -lrt'
 alias la='ls -la'
 alias ll='ls -l'
@@ -57,21 +65,20 @@ alias resource='source ~/.bashrc'
 alias restart_agent='eval `ssh-agent -s`'
 alias revert='svn revert'
 alias rm='rm -i'
-alias s='status'
+alias s='git status'
 alias sdiff='svn diff --diff-cmd tkdiff'
-alias ssh-add='ssh-add -t 36000'
+alias ssh-add='ssh-add -t 32400'
 alias status='svn status | egrep -v "^\?"'
+alias top='nice top'
 alias u='update'
 alias update='svn update'
+# alias xlock='xscreensaver -no-splash || xscreensaver-command -lock'
+alias xlock='xflock4'
 alias yssh='ssh -Y'
 
 # edit within a server emacs
 function em () {
     emacsclient --no-wait $*
-}
-
-function colordiff () {
-    svn diff $* | grep -v '^@@.*@@$' | vim -R -
 }
 
 function a () {
@@ -80,7 +87,10 @@ function a () {
 }
 
 function gdiff() {
-    bash -c "export GIT_EXTERNAL_DIFF=bin/tkdiff_git_wrapper.sh ; git diff $*"
+    for f in `git status | grep modified: | awk '{print $2}'` ; do
+        bash -c "export GIT_EXTERNAL_DIFF=~/bin/tkdiff_git_wrapper.sh ; \
+                 git diff $f"
+    done
 }
 
 # print a reluctant PDF
@@ -99,7 +109,9 @@ function getline () {
     awk -v LN=$1 '(NR==LN){print $0}' $2
 }
 
-export EDITOR="emacs -nw -bg black -fg white "
+export EDITOR=emacs
+export GIT_EDITOR="emacs -nw -q" # no graphical window, no init file
+
 export PAGER=less
 
 # svn side-by-side diff
@@ -163,7 +175,8 @@ function dot2png () {
 
 function eps2png () {
     output=`echo $1 | sed 's/\.eps$/\.png/g'`
-    convert -density 600 -units PixelsPerInch $1 $output
+    convert -flatten -density 600 -units PixelsPerInch $1 $output
+    echo $output
 }
 
 function whatprovides () {
@@ -192,10 +205,6 @@ function qcancel () {
 function which2() {
     ls -l `which $1`
 }
-
-# add line editing to the ocaml interpreter
-alias ocaml='rlwrap -c -r ocaml'
-alias ocamldebug='rlwrap -c -r ocamldebug'
 
 # shell colors
 SH_COLOR_TXTBLK='\e[0;30m' # Black - Regular
@@ -240,26 +249,14 @@ if [ -f ~/.Xresources ]; then
     xrdb ~/.Xresources
 fi
 
-MPI4PY=~/usr/mpi4py-1.2.1/lib64/python
-if [ -d $MPI4PY ]; then
-    export PYTHONPATH=$PYTHONPATH:$MPI4PY
-fi
-
-# colorize OCaml compiler output
-# TODO: should show all the lines but color only the matched ones
-function ocolor() {
-    make $1 2>&1 | egrep -C 10000 --color \
-"^File |^Warning |^Error: | line | characters "
-}
-
-# remove current directory and descendants from svn control
-function svn_forget () {
-    find . -name .svn -exec rm -rf {} \;
-}
-
 MY_BIN=~/bin
 if [ -d $MY_BIN ]; then
-    export PATH=$PATH:$MY_BIN
+    export PATH=$MY_BIN:$PATH
+fi
+# installed ruby gems
+MY_BIN=~/.gem/ruby/2.3.0/bin
+if [ -d $MY_BIN ]; then
+    export PATH=$MY_BIN:$PATH
 fi
 
 function ccp4_setup() {
@@ -275,25 +272,107 @@ function phenix_setup() {
     fi
 }
 
-function godi_setup() {
-    umask 022
-    GODI_SETUP=/usr/local/godi/setup.sh
-    if [ -f $GODI_SETUP ]; then
-        source $GODI_SETUP
+# OPAM setup
+eval `opam env`
+# fix opam set MANPATH
+export MANPATH=:$MANPATH
+
+function fix_screens() {
+    # dual screen setup in xfce4 on meleze @ ENS
+    xrandr --output DP-2 --mode 1600x1200 --pos 0x176  --rotate normal \
+           --output DP-1 --mode 1920x1200 --pos 1600x0 --rotate normal
+}
+
+# disable gnome's ssh wrapper
+unset SSH_ASKPASS
+
+# MayaChemTools setup
+MAYA_BIN=$HOME/src/mayachemtools/bin
+alias MACCSKeysFingerprints=$MAYA_BIN/MACCSKeysFingerprints.pl
+
+function name2smi () {
+    java -jar ~/src/opsin/target/opsin-3.0-SNAPSHOT-jar-with-dependencies.jar \
+         -osmi $1 $2
+}
+
+function name2inchikey () {
+    java -jar ~/src/opsin/target/opsin-3.0-SNAPSHOT-jar-with-dependencies.jar \
+         -ostdinchikey $1 $2
+}
+
+# printer
+export PRINTER=OKI_MC362_DECC6C
+
+# # kill gnome-keyring
+# ps -edf | grep /usr/bin/gnome-keyring-daemon | grep -v grep | \
+# awk '{system("kill -9 "$2)}'
+
+# # open babel
+# export BABEL_DATADIR=/usr/share/openbabel/2.4.1
+
+# to run OCaml programs in production
+ulimit -s 1048576
+
+# MOE setup
+export MOE=/home/ccg/moe
+alias moe=$MOE/bin/moe
+alias moebatch=$MOE/bin/moebatch
+
+# OpenEye products
+export OE_LICENSE=~/doc/oe_license.txt
+
+# return the p-value of a K-S test
+function ks () {
+    ~/src/autoco/bin/ks.sh $1 1 $2 1 2>&1 | grep ', p-value ' | cut -d' ' -f6
+}
+
+function svg2eps () {
+    tmp_pdf_out=`echo $1 | sed 's/\.svg$/\_tmp.pdf/g'`
+    pdf_out=`echo $1 | sed 's/\.svg$/\.pdf/g'`
+    ps_out=`echo $1 | sed 's/\.svg$/\.ps/g'`
+    eps_out=`echo $1 | sed 's/\.svg$/\.eps/g'`
+    svg=$1
+    rsvg-convert -f pdf $svg -o $tmp_pdf_out
+    pdfcrop $tmp_pdf_out $pdf_out
+    pdf2ps $pdf_out $ps_out
+    ps2eps < $ps_out > $eps_out
+}
+
+function smi2eps () {
+    smi=$1
+    svg_out=`echo $1 | sed 's/\.smi$/\.svg/g'`
+    obabel $smi -O $svg_out -xC -xd
+    svg2eps $svg_out
+}
+
+# keyboard layout
+# setxkbmap -option ctrl:swapcaps # Swap Left Control and Caps Lock
+setxkbmap -option ctrl:nocaps   # Make Caps Lock a Control key
+
+function conda_setup () {
+    # added by Anaconda3 5.3.0 installer
+    # >>> conda init >>>
+    # !! Contents within this block are managed by 'conda init' !!
+    __conda_setup="$(CONDA_REPORT_ERRORS=false '/home/berenger/usr/anaconda/bin/conda' shell.bash hook 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+        \eval "$__conda_setup"
+    else
+        if [ -f "/home/berenger/usr/anaconda/etc/profile.d/conda.sh" ]; then
+            . "/home/berenger/usr/anaconda/etc/profile.d/conda.sh"
+            CONDA_CHANGEPS1=false conda activate base
+        else
+            \export PATH="/home/berenger/usr/anaconda/bin:$PATH"
+        fi
     fi
+    unset __conda_setup
+    # <<< conda init <<<
 }
 
-function ocamlbrew_setup() {
-    source ~/ocamlbrew/ocaml-3.12.1/etc/ocamlbrew.bashrc
-}
-
-# running CCP4's sc tool
-function ccp4_sc() {
-    sc XYZIN $1 <<EOF
-MOLECULE 1
-CHAIN A
-MOLECULE 2
-CHAIN B
-END
-EOF
+# cut a multi model PDB into separate files
+function split_pdb() {
+    i=1
+    while read -a line; do
+        echo "${line[@]}" >> model_${i}.pdb
+        [[ ${line[0]} == TER ]] && ((i++))
+    done < $1
 }
