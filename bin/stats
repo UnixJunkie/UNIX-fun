@@ -98,7 +98,9 @@ let () =
      exit 1);
   let floats, exn =
     L.unfold_exc (fun () ->
-        float_of_string (input_line stdin)
+        let line = BatString.strip (input_line stdin) in
+        try float_of_string line
+        with Failure msg -> failwith (sprintf "%s: %s" msg line)
       ) in
   if exn <> End_of_file then raise exn;
   let required_operations = CLI.get_string ["-ops"] args in
