@@ -2,7 +2,7 @@ Emacs.toolBar:off
 Emacs*font:8x13
 Emacs*foreground:White
 Emacs*background:DarkSlateGray
-Emacs*geometry:80x70
+Emacs*geometry:80x93
 Emacs*cursorColor:red
 Emacs*borderWidth:0
 Emacs*internalBorder:0
