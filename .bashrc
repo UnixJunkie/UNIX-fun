@@ -278,9 +278,9 @@ eval `opam env`
 export MANPATH=:$MANPATH
 
 function fix_screens() {
-    # dual screen setup in xfce4 on meleze @ ENS
-    xrandr --output DP-2 --mode 1600x1200 --pos 0x176  --rotate normal \
-           --output DP-1 --mode 1920x1200 --pos 1600x0 --rotate normal
+    # dual screen setup @ Kyutech
+    xrandr --output DP-6 --mode 3840x2160 --pos 0x0    --rotate normal \
+           --output DP-4 --mode 3840x2160 --pos 3840x0 --rotate normal
 }
 
 # disable gnome's ssh wrapper
