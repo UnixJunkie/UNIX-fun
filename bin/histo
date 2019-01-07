@@ -6,30 +6,44 @@ Ocaml.packs := ["batteries";"minicli"]
 
 open Printf
 
+module CLI = Minicli.CLI
 module L = BatList
 
 let () =
   let argc, args = CLI.init () in
-  if argc <> 1 then
+  if argc = 1 then
     (eprintf "stdin must have one float per line\n\
               usage:\n\
-              cat data | %s > histogram.txt\n"
+              cat data | %s [-min <min_float> -max <max_float>] -s <nb_steps> \
+              > histogram.txt\n"
        Sys.argv.(0);
      exit 1);
+  let nb_steps = CLI.get_int ["-s"] args in
   let floats, exn =
     L.unfold_exc (fun () ->
-        float_of_string (input_line stdin)
+        float_of_string (BatString.strip (input_line stdin))
       ) in
   if exn <> End_of_file then raise exn;
   let sorted = L.sort compare floats in
+  let mini', maxi' = L.min_max sorted in
+  let mini, maxi = BatFloat.(round mini', round maxi') in
+  let min_val = match CLI.get_float_opt ["-min"] args with
+    | None -> (eprintf " -min %.2f -max %.2f\n" mini maxi; exit 1)
+    | Some x -> x in
+  let max_val = match CLI.get_float_opt ["-max"] args with
+    | None -> assert(false)
+    | Some x -> x in
+  if mini < min_val then failwith (sprintf "%f < min" mini);
+  if maxi > max_val then failwith (sprintf "%f > max" maxi);
+  (* nb_lines => the histogram is normalized *)
   let nb_lines = float (L.length sorted) in
-  let xs = L.frange 0.0 `To 1.0 20 in
+  let xs = L.frange min_val `To max_val nb_steps in
   let histogram =
     let to_process = ref sorted in
     L.map (fun x ->
         let ok, ko = L.partition (fun y -> y <= x) !to_process in
         to_process := ko;
-        (x, float (L.length ok) /. nb_lines)
+        (x, (float (L.length ok)) /. nb_lines)
       ) xs in
   L.iter (fun (x, y) ->
       printf "%f %f\n" x y
