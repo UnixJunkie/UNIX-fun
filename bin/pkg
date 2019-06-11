@@ -7,7 +7,7 @@ set -e # quit on errors
 function usage() {
     echo "error: wrong number of parameters"
     #             0   1                                          2
-    echo "usage: "$0" a[dd]|c[lean]|r[m]|s[earch]|i[nfo]|q[uery] [pkg_name]"
+    echo "usage: "$0" a[dd]|c[lean]|f[reeze]|r[m]|s[earch]|i[nfo]|q[uery]|u[nfreeze] [pkg_name]"
     exit 1
 }
 
@@ -42,6 +42,8 @@ case "$redhat_or_debian_clone" in
           info="aptitude show "$what
           clean="sudo apt autoremove"
           query="dpkg -S "$what
+          freeze="aptitude hold "$what
+          unfreeze="aptitude unhold "$what
           ;;
   redhat) add="sudo yum install "$what
           remove="sudo yum remove "$what
@@ -49,6 +51,8 @@ case "$redhat_or_debian_clone" in
           info="yum info "$what
           clean="sudo yum clean all" # not like apt autoremove but ...
           query="rpmquery --whatprovides "$what
+          freeze="yum versionlock "$what
+          unfreeze="yum versionlock delete "$what
           ;;
   *     ) echo "error: neither a debian nor a redhat clone"
           exit 1
@@ -67,6 +71,10 @@ case "$command" in
   i*     ) $info
            ;;
   q*     ) $query
+           ;;
+  f*     ) $freeze
+           ;;
+  u*     ) $unfreeze
            ;;
   *      ) usage
            ;;
