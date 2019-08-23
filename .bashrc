@@ -38,6 +38,7 @@ alias frswitch='export LANG=fr_FR.UTF-8'
 alias jpswitch='export LANG=ja_JP.UTF-8'
 alias gc='git commit'
 alias gd='git diff'
+alias get_mol='lbvs_consent_mol_get'
 alias gpull='git pull'
 alias gpush='git push'
 alias gstat='git status'
@@ -60,6 +61,7 @@ alias ooo='ooffice'
 alias po='popd'
 alias pu='pushd'
 alias r='revert'
+alias R='R --no-save'
 alias remake='make clean && make'
 alias resource='source ~/.bashrc'
 alias restart_agent='eval `ssh-agent -s`'
@@ -206,6 +208,10 @@ function which2() {
     ls -l `which $1`
 }
 
+function gpu-watch () {
+    watch nvidia-smi -a --display=utilization
+}
+
 # shell colors
 SH_COLOR_TXTBLK='\e[0;30m' # Black - Regular
 SH_COLOR_TXTRED='\e[0;31m' # Red
@@ -258,6 +264,11 @@ MY_BIN=~/.gem/ruby/2.3.0/bin
 if [ -d $MY_BIN ]; then
     export PATH=$MY_BIN:$PATH
 fi
+# python pip installed programs
+PY_BIN=~/.local/bin
+if [ -d $PY_BIN ]; then
+    export PATH=$PATH:$PY_BIN
+fi
 
 function ccp4_setup() {
     source /usr/local/src/ccp4-6.2.0/setup-scripts/sh/ccp4.setup
@@ -272,15 +283,16 @@ function phenix_setup() {
     fi
 }
 
-# OPAM setup
-eval `opam env`
-# fix opam set MANPATH
-export MANPATH=:$MANPATH
+# OPAM configuration
+eval `opam env --shell=bash`
 
-function fix_screens() {
+function fix() {
     # dual screen setup @ Kyutech
     xrandr --output DP-6 --mode 3840x2160 --pos 0x0    --rotate normal \
            --output DP-4 --mode 3840x2160 --pos 3840x0 --rotate normal
+    # also kill the boring dialog window
+    kill -9 $(ps -edf | grep xfce4-display-settings | grep -v grep | \
+                  cut -d' ' -f2)
 }
 
 # disable gnome's ssh wrapper
@@ -301,7 +313,7 @@ function name2inchikey () {
 }
 
 # printer
-export PRINTER=OKI_MC362_DECC6C
+export PRINTER=OKI_MC362_DECC6C_N715_
 
 # # kill gnome-keyring
 # ps -edf | grep /usr/bin/gnome-keyring-daemon | grep -v grep | \
@@ -349,25 +361,6 @@ function smi2eps () {
 # setxkbmap -option ctrl:swapcaps # Swap Left Control and Caps Lock
 setxkbmap -option ctrl:nocaps   # Make Caps Lock a Control key
 
-function conda_setup () {
-    # added by Anaconda3 5.3.0 installer
-    # >>> conda init >>>
-    # !! Contents within this block are managed by 'conda init' !!
-    __conda_setup="$(CONDA_REPORT_ERRORS=false '/home/berenger/usr/anaconda/bin/conda' shell.bash hook 2> /dev/null)"
-    if [ $? -eq 0 ]; then
-        \eval "$__conda_setup"
-    else
-        if [ -f "/home/berenger/usr/anaconda/etc/profile.d/conda.sh" ]; then
-            . "/home/berenger/usr/anaconda/etc/profile.d/conda.sh"
-            CONDA_CHANGEPS1=false conda activate base
-        else
-            \export PATH="/home/berenger/usr/anaconda/bin:$PATH"
-        fi
-    fi
-    unset __conda_setup
-    # <<< conda init <<<
-}
-
 # cut a multi model PDB into separate files
 function split_pdb() {
     i=1
@@ -375,4 +368,33 @@ function split_pdb() {
         echo "${line[@]}" >> model_${i}.pdb
         [[ ${line[0]} == TER ]] && ((i++))
     done < $1
+}
+
+# crop pdf file in place
+function crop_pdf () {
+    tmp=`mktemp XXXXXX.pdf`
+    pdfcrop $1 $tmp && \mv $tmp $1
+}
+
+function conda_setup () {
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/home/berenger/usr/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/berenger/usr/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/berenger/usr/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/berenger/usr/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+}
+
+function deepchem () {
+    conda_setup
+    conda activate deepchem
+    # to stop using it: conda deactivate
 }
