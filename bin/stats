@@ -130,54 +130,54 @@ let () =
   let operations = S.split_on_char ',' required_operations in
   let ops = L.map op_of_str operations in
   maybe_with_in_file input_fn (fun input ->
-  let floats', groups =
-    match delim_str, field_num, group_by_field with
-    | (None, None, None) ->
-      let res, exn =
-        L.unfold_exc (fun () ->
-            let line = S.strip (input_line input) in
-            try float_of_string line
-            with Failure msg -> failwith (sprintf "%s: %s" msg line)) in
-      if exn <> End_of_file then raise exn;
-      ([res], [])
-    | (Some delim, Some fnum, None) ->
-      let res, exn =
-        L.unfold_exc (fun () ->
-            let line = S.strip (input_line input) in
-            let fields = S.nsplit line ~by:delim in
-            let field = L.at fields (fnum - 1) in
-            try float_of_string field
-            with Failure msg -> failwith (sprintf "%s: %s" msg line)) in
-      if exn <> End_of_file then raise exn;
-      ([res], [])
-    | (Some delim, Some fnum, Some gnum) ->
-      let lines, exn = L.unfold_exc (fun () -> S.strip (input_line input)) in
-      if exn <> End_of_file then raise exn;
-      let line_groups =
-        L.map (fun line ->
-            let fields = S.nsplit line ~by:delim in
-            let group = L.at fields (gnum - 1) in
-            let field = L.at fields (fnum - 1) in
-            (group, float_of_string field)
-          ) lines in
-      let line_groups' =
-        L.sort (fun x y -> compare (fst x) (fst y)) line_groups in
-      let grouped =
-        L.group_consecutive (fun x y -> (fst x) = (fst y)) line_groups' in
-      let groups = L.unique_cmp ~cmp:compare (L.map fst line_groups') in
-      (L.map (L.map snd) grouped, groups)
-    | _ ->
-      failwith "Stats: unsupported (-d,-f,-g) combination"
-  in
-  L.iteri (fun i_group floats ->
-      if groups <> [] then
-        printf "%s " (L.at groups i_group);
-      L.iteri (fun i op ->
-          let res = op floats in
-          let str = str_of_stat res in
-          if i = 0 then printf "%s" str
-          else printf " %s" str
-        ) ops;
-      printf "\n"
-    ) floats'
+      let floats', groups =
+        match delim_str, field_num, group_by_field with
+        | (None, None, None) ->
+          let res, exn =
+            L.unfold_exc (fun () ->
+                let line = S.strip (input_line input) in
+                try float_of_string line
+                with Failure msg -> failwith (sprintf "%s: %s" msg line)) in
+          if exn <> End_of_file then raise exn;
+          ([res], [])
+        | (Some delim, Some fnum, None) ->
+          let res, exn =
+            L.unfold_exc (fun () ->
+                let line = S.strip (input_line input) in
+                let fields = S.nsplit line ~by:delim in
+                let field = L.at fields (fnum - 1) in
+                try float_of_string field
+                with Failure msg -> failwith (sprintf "%s: %s" msg line)) in
+          if exn <> End_of_file then raise exn;
+          ([res], [])
+        | (Some delim, Some fnum, Some gnum) ->
+          let lines, exn = L.unfold_exc (fun () -> S.strip (input_line input)) in
+          if exn <> End_of_file then raise exn;
+          let line_groups =
+            L.map (fun line ->
+                let fields = S.nsplit line ~by:delim in
+                let group = L.at fields (gnum - 1) in
+                let field = L.at fields (fnum - 1) in
+                (group, float_of_string field)
+              ) lines in
+          let line_groups' =
+            L.sort (fun x y -> compare (fst x) (fst y)) line_groups in
+          let grouped =
+            L.group_consecutive (fun x y -> (fst x) = (fst y)) line_groups' in
+          let groups = L.unique_cmp ~cmp:compare (L.map fst line_groups') in
+          (L.map (L.map snd) grouped, groups)
+        | _ ->
+          failwith "Stats: unsupported (-d,-f,-g) combination"
+      in
+      L.iteri (fun i_group floats ->
+          if groups <> [] then
+            printf "%s " (L.at groups i_group);
+          L.iteri (fun i op ->
+              let res = op floats in
+              let str = str_of_stat res in
+              if i = 0 then printf "%s" str
+              else printf " %s" str
+            ) ops;
+          printf "\n"
+        ) floats'
     )
