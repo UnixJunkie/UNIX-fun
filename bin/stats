@@ -99,7 +99,7 @@ let () =
       eprintf "usage:\n  \
                %s -ops {card[,min[,max[,avg[,med[,stddev[,zscore[,mad]...}\n  \
         [-d <string>]: field delimiter string\n  \
-        [-f <int>]: field number (default=1)\n \\
+        [-f <int>]: field number (default=1)\n \
         [-g <int>]: group by field number (default=None)\n"
         Sys.argv.(0);
       exit 1
@@ -142,20 +142,18 @@ let () =
     | (Some delim, Some fnum, Some gnum) ->
       let lines, exn = L.unfold_exc (fun () -> S.strip (input_line stdin)) in
       if exn <> End_of_file then raise exn;
-      let group_fields = ref [] in
       let line_groups =
         L.map (fun line ->
             let fields = S.nsplit line ~by:delim in
-            let group_field = L.at fields (gnum - 1) in
-            group_fields := group_field :: !group_fields;
+            let group = L.at fields (gnum - 1) in
             let field = L.at fields (fnum - 1) in
-            (group_field, float_of_string field)
+            (group, float_of_string field)
           ) lines in
       let line_groups' =
         L.sort (fun x y -> compare (fst x) (fst y)) line_groups in
       let grouped =
         L.group_consecutive (fun x y -> (fst x) = (fst y)) line_groups' in
-      let groups = L.unique_cmp ~cmp:compare (L.rev !group_fields) in
+      let groups = L.unique_cmp ~cmp:compare (L.map fst line_groups') in
       (L.map (L.map snd) grouped, groups)
     | _ ->
       failwith "Stats: unsupported (-d,-f,-g) combination"
@@ -168,6 +166,6 @@ let () =
           let str = str_of_stat res in
           if i = 0 then printf "%s" str
           else printf " %s" str
-        ) ops
-    ) floats';
-  printf "\n"
+        ) ops;
+      printf "\n"
+    ) floats'
