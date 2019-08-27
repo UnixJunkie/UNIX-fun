@@ -4,12 +4,10 @@ Ocaml.packs := ["batteries";"minicli"]
 (* read one float per line from stdin (until End_of_file);
    then output whatever descriptive statistics the user asked for *)
 
-module CLI = Minicli.CLI
-
-let compose f g x =
-  f (g x)
-
 open Printf
+
+module CLI = Minicli.CLI
+module S = BatString
 
 module L = struct
 
@@ -25,6 +23,9 @@ module L = struct
     Buffer.add_char buff ']';
     Buffer.contents buff
 end
+
+let compose f g x =
+  f (g x)
 
 type stat = Single of float
           | Many of float list
@@ -105,27 +106,68 @@ let () =
     end;
   let required_operations = CLI.get_string ["-ops"] args in
   let delim_str = CLI.get_string_opt ["-d"] args in
-  let field_num = CLI.get_int_opt ["-f"] args in
-  let group_by_field = CLI.get_int_opt ["-g"] args in
+  let field_num = match CLI.get_int_opt ["-f"] args with
+    | None -> None
+    | Some x ->
+      if x <= 0 then failwith (sprintf "Stats: invalid field num: %d" x)
+      else Some x in
+  let group_by_field = match CLI.get_int_opt ["-g"] args with
+    | None -> None
+    | Some x ->
+      if x <= 0 then failwith (sprintf "Stats: invalid group num: %d" x)
+      else Some x in
   CLI.finalize();
-  let operations = BatString.split_on_char ',' required_operations in
+  let operations = S.split_on_char ',' required_operations in
   let ops = L.map op_of_str operations in
-  let floats, exn =
+  let floats', groups =
     match delim_str, field_num, group_by_field with
     | (None, None, None) ->
-      L.unfold_exc (fun () ->
-          let line = BatString.strip (input_line stdin) in
-          try float_of_string line
-          with Failure msg -> failwith (sprintf "%s: %s" msg line))
-    | _ -> failwith "not implemented yet"
+      let res, exn =
+        L.unfold_exc (fun () ->
+            let line = S.strip (input_line stdin) in
+            try float_of_string line
+            with Failure msg -> failwith (sprintf "%s: %s" msg line)) in
+      if exn <> End_of_file then raise exn;
+      ([res], [])
+    | (Some delim, Some fnum, None) ->
+      let res, exn =
+        L.unfold_exc (fun () ->
+            let line = S.strip (input_line stdin) in
+            let fields = S.nsplit line ~by:delim in
+            let field = L.at fields (fnum - 1) in
+            try float_of_string field
+            with Failure msg -> failwith (sprintf "%s: %s" msg line)) in
+      if exn <> End_of_file then raise exn;
+      ([res], [])
+    | (Some delim, Some fnum, Some gnum) ->
+      let lines, exn = L.unfold_exc (fun () -> S.strip (input_line stdin)) in
+      if exn <> End_of_file then raise exn;
+      let group_fields = ref [] in
+      let line_groups =
+        L.map (fun line ->
+            let fields = S.nsplit line ~by:delim in
+            let group_field = L.at fields (gnum - 1) in
+            group_fields := group_field :: !group_fields;
+            let field = L.at fields (fnum - 1) in
+            (group_field, float_of_string field)
+          ) lines in
+      let line_groups' =
+        L.sort (fun x y -> compare (fst x) (fst y)) line_groups in
+      let grouped =
+        L.group_consecutive (fun x y -> (fst x) = (fst y)) line_groups' in
+      let groups = L.unique_cmp ~cmp:compare (L.rev !group_fields) in
+      (L.map (L.map snd) grouped, groups)
+    | _ ->
+      failwith "Stats: unsupported (-d,-f,-g) combination"
   in
-  if exn <> End_of_file then raise exn;
-  L.iteri (fun i op ->
-      let res = op floats in
-      let str = str_of_stat res in
-      if i = 0 then
-        printf "%s" str
-      else
-        printf " %s" str
-    ) ops;
+  L.iteri (fun i_group floats ->
+      if groups <> [] then
+        printf "%s " (L.at groups i_group);
+      L.iteri (fun i op ->
+          let res = op floats in
+          let str = str_of_stat res in
+          if i = 0 then printf "%s" str
+          else printf " %s" str
+        ) ops
+    ) floats';
   printf "\n"
