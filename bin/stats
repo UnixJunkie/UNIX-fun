@@ -106,9 +106,9 @@ let () =
     begin
       eprintf "usage:\n  \
                %s -ops {card[,min[,max[,avg[,med[,stddev[,zscore[,mad]...}\n  \
-        [-d <string>]: field delimiter string\n  \
-        [-f <int>]: field number (default=1)\n \
-        [-g <int>]: group by field number (default=None)\n \
+        [-d <string>]: field delimiter string (default=None)\n  \
+        [-f <int>]: field number (default=1)\n  \
+        [-g <int>]: group by field number (default=None)\n  \
         [-i <filename>]: input file (default=stdin)\n"
         Sys.argv.(0);
       exit 1
