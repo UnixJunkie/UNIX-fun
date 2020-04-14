@@ -1,0 +1,25 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := []
+--
+
+(* count the number of times char 'c' is found on stdin
+   WARNING: probably not super efficient
+*)
+
+if Array.length Sys.argv = 1 then
+  begin
+    Printf.eprintf "usage: %s 'c' < [FILE]\n" Sys.argv.(0);
+    exit 1
+  end
+
+let s = Sys.argv.(1) in
+assert(String.length s = 1);
+let c = String.get s 0 in
+let count = ref 0 in
+try
+  while true do
+    if (input_char stdin = c) then
+      incr count
+  done
+with End_of_file ->
+  Printf.printf "%d\n" !count
