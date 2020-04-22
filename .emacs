@@ -103,6 +103,9 @@
    "failwith \"not implemented yet\"")
 (global-set-key [f12] 'not_yet)
 
+(global-set-key "\M-." 'ocp-index-jump-to-definition)
+(global-set-key "\C-t" 'merlin-type-enclosing)
+
 ;; enable use of the emacsclient command
 ;; (server-force-delete)
 ;; (server-start)
@@ -146,3 +149,6 @@ to the next non-whitespace character.  See
 
 ;; sh-mode for gnuplot scripts
 (add-to-list 'auto-mode-alist '("\\.gpl\\'" . sh-mode))
+;; ## added by OPAM user-setup for emacs / base ## 56ab50dc8996d2bb95e7856a6eddb17b ## you can edit, but keep this line
+(require 'opam-user-setup "~/.emacs.d/opam-user-setup.el")
+;; ## end of OPAM user-setup addition for emacs / base ## keep this line
