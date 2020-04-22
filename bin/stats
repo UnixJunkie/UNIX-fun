@@ -144,7 +144,7 @@ let () =
           let res, exn =
             L.unfold_exc (fun () ->
                 let line = S.strip (input_line input) in
-                let fields = S.nsplit line ~by:delim in
+                let fields = S.split_on_string line ~by:delim in
                 let field = L.at fields (fnum - 1) in
                 try float_of_string field
                 with Failure msg -> failwith (sprintf "%s: %s" msg line)) in
@@ -155,7 +155,7 @@ let () =
           if exn <> End_of_file then raise exn;
           let line_groups =
             L.map (fun line ->
-                let fields = S.nsplit line ~by:delim in
+                let fields = S.split_on_string line ~by:delim in
                 let group = L.at fields (gnum - 1) in
                 let field = L.at fields (fnum - 1) in
                 (group, float_of_string field)
