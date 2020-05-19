@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Efficient parallel xz compressor
+
+if [ $# -eq 0 ]; then
+    echo "usage:"
+    echo "pxz <FILE>"
+    exit 1
+fi
+
+pardi -d b:1048576 -p -i $1 -o $1'.xz' -w 'xz -c -9 %IN > %OUT'
