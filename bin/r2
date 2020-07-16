@@ -1,0 +1,40 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := ["batteries"]
+--
+(* read two floats per line from stdin (until End_of_file); then output R2 *)
+
+open Printf
+
+module L = BatList
+
+let square x =
+  x *. x
+
+(* coefficient of determination R^2 *)
+let r2 actual pred =
+  (* ss_res <- sum((preds - actual)^2) *)
+  let ss_res =
+    L.fold_left2 (fun acc x y ->
+        acc +. square (x -. y)
+      ) 0.0 pred actual in
+  (* ss_tot <- sum((actual - mean(actual))^2) *)
+  let ss_tot =
+    let mean = L.favg actual in
+    L.fold_left (fun acc x ->
+        acc +. square (x -. mean)
+      ) 0.0 actual in
+  1.0 -. (ss_res /. ss_tot)
+
+let main () =
+  let res =
+    let float_pairs =
+      let all_lines, exn = L.unfold_exc (fun () -> input_line stdin) in
+      assert(exn = End_of_file);
+      L.map (fun line ->
+          Scanf.sscanf line "%f %f" (fun x y -> (x, y))
+        ) all_lines in
+    let l1, l2 = L.split float_pairs in
+    r2 l1 l2 in
+  printf "R2: %.3f\n" res
+
+let () = main ()
