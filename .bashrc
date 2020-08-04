@@ -175,6 +175,16 @@ function dot2png () {
     dot -T png $1 -o $output
 }
 
+# output each molecule to a file named by its index in the input
+function smi2svg () {
+    cut -f1 $1 | awk '{system("obabel -:\""$1"\" -O "NR-1".svg -xC")}'
+}
+
+function dot2svg () {
+    output=`echo $1 | sed 's/\.dot$/\.svg/g'`
+    dot -T svg $1 -o $output
+}
+
 function eps2png () {
     output=`echo $1 | sed 's/\.eps$/\.png/g'`
     convert -flatten -density 600 -units PixelsPerInch $1 $output
@@ -357,6 +367,12 @@ function smi2eps () {
     svg2eps $svg_out
 }
 
+function svg2pdf () {
+    svg=$1
+    pdf_out=`echo $1 | sed 's/\.svg$/\.pdf/g'`
+    inkscape $svg --export-pdf $pdf_out
+}
+
 # keyboard layout
 # setxkbmap -option ctrl:swapcaps # Swap Left Control and Caps Lock
 setxkbmap -option ctrl:nocaps   # Make Caps Lock a Control key
@@ -379,14 +395,14 @@ function crop_pdf () {
 function conda_setup () {
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/berenger/usr/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+__conda_setup="$('/home/berenger/usr/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
-    if [ -f "/home/berenger/usr/miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/berenger/usr/miniconda3/etc/profile.d/conda.sh"
+    if [ -f "/home/berenger/usr/anaconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/berenger/usr/anaconda3/etc/profile.d/conda.sh"
     else
-        export PATH="/home/berenger/usr/miniconda3/bin:$PATH"
+        export PATH="/home/berenger/usr/anaconda3/bin:$PATH"
     fi
 fi
 unset __conda_setup
