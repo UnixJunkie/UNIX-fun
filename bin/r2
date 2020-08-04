@@ -31,7 +31,8 @@ let main () =
       let all_lines, exn = L.unfold_exc (fun () -> input_line stdin) in
       assert(exn = End_of_file);
       L.map (fun line ->
-          Scanf.sscanf line "%f %f" (fun x y -> (x, y))
+          try Scanf.sscanf line "%f %f" (fun x y -> (x, y))
+          with exn -> failwith ("r2: cannot parse: " ^ line)
         ) all_lines in
     let l1, l2 = L.split float_pairs in
     r2 l1 l2 in
