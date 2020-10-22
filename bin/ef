@@ -1,0 +1,61 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := ["batteries";"dolog"]
+--
+(* Enrichment Factor (EF) calculation utility
+
+   read 'score:float label:int' on each stdin line, then output EF1,2,5%
+   label must be 1 for actives, 0 for decoys.
+   The file must be sorted properly (by decreasing scores usually,
+   unless those are docking scores). *)
+
+open Printf
+
+module L = BatList
+module Log = Dolog.Log
+
+module SL = struct
+
+  type t = float * bool
+
+  let of_string l =
+    try Scanf.sscanf l "%f %d" (fun score int_label -> match int_label with
+        | 1 -> (score, true)
+        | 0 -> (score, false)
+        | x -> failwith (sprintf "SL.of_string: unexpected label: %s" l))
+    with exn ->
+      (Log.fatal "SL.of_string: cannot parse: %s" l;
+       raise exn)
+
+end
+
+let list_really_take n l =
+  let res = L.take n l in
+  assert(L.length res = n);
+  res
+
+let hit_rate l =
+  (float (L.length (L.filter snd l))) /. (float (L.length l))
+
+let main () =
+  Log.(set_log_level INFO);
+  Log.color_on ();
+  let all_lines, exn =
+    L.unfold_exc (fun () -> SL.of_string (input_line stdin)) in
+  assert(exn = End_of_file);
+  let n = float (L.length all_lines) in
+  let a, b, c = (BatFloat.round_to_int (0.01 *. n),
+                 BatFloat.round_to_int (0.02 *. n),
+                 BatFloat.round_to_int (0.05 *. n)) in
+  let bg_rate = hit_rate all_lines in
+  let la, lb, lc = (list_really_take a all_lines,
+                    list_really_take b all_lines,
+                    list_really_take c all_lines) in
+  let ra, rb, rc = (hit_rate la,
+                    hit_rate lb,
+                    hit_rate lc) in
+  let ef1, ef2, ef5 = (ra /. bg_rate,
+                       rb /. bg_rate,
+                       rc /. bg_rate) in
+  printf "EF1,2,5%%: %.2f %.2f %.2f\n" ef1 ef2 ef5
+
+let () = main ()
