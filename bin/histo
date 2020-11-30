@@ -9,12 +9,16 @@ open Printf
 module CLI = Minicli.CLI
 module L = BatList
 
+let dx = function
+  | [] | [_] -> assert(false)
+  | x :: y :: _xs -> (y -. x)
+
 let () =
   let argc, args = CLI.init () in
   if argc = 1 then
     (eprintf "stdin must have one float per line\n\
               usage:\n\
-              cat data | %s [-min <min_float> -max <max_float>] -s <nb_steps> \
+              cat data | %s [-min <min_float> -max <max_float>] -s <nb_steps> [--raw] \
               > histogram.txt\n"
        Sys.argv.(0);
      exit 1);
@@ -24,6 +28,8 @@ let () =
         float_of_string (BatString.strip (input_line stdin))
       ) in
   if exn <> End_of_file then raise exn;
+  (* no histogram normalization *)
+  let raw = CLI.get_set_bool ["--raw"] args in
   let sorted = L.sort compare floats in
   let mini', maxi' = L.min_max sorted in
   let mini, maxi = BatFloat.(round mini', round maxi') in
@@ -38,13 +44,14 @@ let () =
   (* nb_lines => the histogram is normalized *)
   let nb_lines = float (L.length sorted) in
   let xs = L.frange min_val `To max_val nb_steps in
+  let half_dx = 0.5 *. (dx xs) in
   let histogram =
     let to_process = ref sorted in
     L.map (fun x ->
         let ok, ko = L.partition (fun y -> y <= x) !to_process in
         to_process := ko;
-        (x, (float (L.length ok)) /. nb_lines)
+        (x -. half_dx, (float (L.length ok)) /. nb_lines)
       ) xs in
   L.iter (fun (x, y) ->
-      printf "%f %f\n" x y
+      printf "%f %f\n" x (if raw then y *. nb_lines else y)
     ) histogram
