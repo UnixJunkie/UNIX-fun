@@ -111,6 +111,7 @@ function getline () {
     awk -v LN=$1 '(NR==LN){print $0}' $2
 }
 
+export LANG=C # so that sort sorts text correctly
 export EDITOR=emacs
 export GIT_EDITOR="emacs -nw -q" # no graphical window, no init file
 
@@ -298,8 +299,8 @@ eval `opam env --shell=bash`
 
 function fix() {
     # dual screen setup @ Kyutech
-    xrandr --output DP-6 --mode 3840x2160 --pos 0x0    --rotate normal \
-           --output DP-4 --mode 3840x2160 --pos 3840x0 --rotate normal
+    xrandr --output DP-4 --mode 3840x2160 --pos 0x0    --rotate normal \
+           --output DP-6 --mode 3840x2160 --pos 3840x0 --rotate normal
     # also kill the boring dialog window
     kill -9 $(ps -edf | grep xfce4-display-settings | grep -v grep | \
                   cut -d' ' -f2)
@@ -395,14 +396,14 @@ function crop_pdf () {
 function conda_setup () {
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/berenger/usr/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+__conda_setup="$('/usr/local/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
-    if [ -f "/home/berenger/usr/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/berenger/usr/anaconda3/etc/profile.d/conda.sh"
+    if [ -f "/usr/local/anaconda3/etc/profile.d/conda.sh" ]; then
+        . "/usr/local/anaconda3/etc/profile.d/conda.sh"
     else
-        export PATH="/home/berenger/usr/anaconda3/bin:$PATH"
+        export PATH="/usr/local/anaconda3/bin:$PATH"
     fi
 fi
 unset __conda_setup
