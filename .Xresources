@@ -12,6 +12,7 @@ XTerm*foreground:White
 XTerm*metaSendsEscape:true
 xterm*vt100*geometry:80x104
 xterm*saveLines:10000
-xterm*font:10x20
+xterm*faceName: Monospace
+xterm*faceSize: 9
 xterm*scrollBar:true
 xterm*rightScrollBar:true
