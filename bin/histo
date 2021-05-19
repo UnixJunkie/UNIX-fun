@@ -1,5 +1,5 @@
 #!/usr/bin/env ocamlscript
-Ocaml.packs := ["batteries";"minicli"]
+Ocaml.packs := ["batteries";"minicli";"dolog"]
 --
 (* read one float per line from stdin (until End_of_file);
    then create an histogram of those values *)
@@ -8,6 +8,7 @@ open Printf
 
 module CLI = Minicli.CLI
 module L = BatList
+module Log = Dolog.Log
 
 let dx = function
   | [] | [_] -> assert(false)
@@ -24,8 +25,14 @@ let () =
      exit 1);
   let nb_steps = CLI.get_int ["-s"] args in
   let floats, exn =
+    let i = ref 0 in
     L.unfold_exc (fun () ->
-        float_of_string (BatString.strip (input_line stdin))
+        let line = input_line stdin in
+        let float_str = BatString.strip line in
+        try float_of_string float_str
+        with exn ->
+          let () = Log.fatal "cannot parse line %d: '%s'" !i line in
+          raise exn
       ) in
   if exn <> End_of_file then raise exn;
   (* no histogram normalization *)
