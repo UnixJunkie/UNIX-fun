@@ -109,7 +109,7 @@ let () =
   if argc = 1 then
     begin
       eprintf "usage:\n  \
-               %s -ops {card[,min[,max[,avg[,med[,stddev[,zscore[,mad...}\n  \
+               %s -ops {card[,min[,max[,avg[,med[,stddev[,zscore[,mad[,sum...}\n  \
         [-d <string>]: field delimiter string (default=None)\n  \
         [-f <int>]: field number (default=1)\n  \
         [-g <int>]: group by field number (default=None)\n  \
