@@ -15,7 +15,6 @@
 
 ;; I hate backup files hanging everywhere
 (setq backup-directory-alist (quote ((".*" . "~/.emacs_backups/"))))
-
 ;; allow using a wheel-mouse
 (mouse-wheel-mode t)
 
@@ -103,7 +102,7 @@
    "failwith \"not implemented yet\"")
 (global-set-key [f12] 'not_yet)
 
-(global-set-key "\M-." 'ocp-index-jump-to-definition)
+(global-set-key "\M-." 'merlin-locate)
 (global-set-key "\C-t" 'merlin-type-enclosing)
 
 ;; enable use of the emacsclient command
