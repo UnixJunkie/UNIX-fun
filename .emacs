@@ -3,6 +3,7 @@
 (setq transient-mark-mode t)
 (show-paren-mode t)
 (column-number-mode t)
+(menu-bar-mode -1)
 
 ;; ;; international language ;)
 ;; (ispell-change-dictionary "british")
