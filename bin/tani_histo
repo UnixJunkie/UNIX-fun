@@ -1,0 +1,46 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := ["batteries";"line_oriented"]
+--
+(* Tanimoto scores between two histograms
+   A histogram is a list of values: (x, frequency) *)
+
+open Printf
+
+module Ht = BatHashtbl
+module L = BatList
+module LO = Line_oriented
+
+let parse_line l =
+  try Scanf.sscanf l "%f %f" (fun x y -> (x, y))
+  with exn -> failwith ("parse_line: cannot parse: " ^ l)
+
+let tani ht1 ht2 =
+  let min_sum = ref 0.0 in
+  let max_sum = ref 0.0 in
+  (* ht1 and inter w/ ht2 *)
+  Ht.iter (fun k1 v1 ->
+      try
+        let v2 = Ht.find ht2 k1 in
+        min_sum := !min_sum +. (min v1 v2);
+        max_sum := !max_sum +. (max v1 v2)
+      with Not_found ->
+        (* min_sum is 0.0 *)
+        max_sum := !max_sum +. v1
+    ) ht1;
+  (* remaining part of ht2 *)
+  Ht.iter (fun k2 v2 ->
+      if not (Ht.mem ht1 k2) then
+        max_sum := !max_sum +. v2
+    ) ht2;
+  !min_sum /. !max_sum
+
+let main () =
+  let fn1 = Sys.argv.(1) in
+  let fn2 = Sys.argv.(2) in
+  let lines1 = LO.map fn1 parse_line in
+  let lines2 = LO.map fn2 parse_line in
+  let h1 = L.fold (fun acc (k, v) -> Ht.add acc k v; acc) (Ht.create 11) lines1 in
+  let h2 = L.fold (fun acc (k, v) -> Ht.add acc k v; acc) (Ht.create 11) lines2 in
+  printf "Tani: %.3f\n" (tani h1 h2)
+
+let () = main ()

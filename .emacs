@@ -16,7 +16,6 @@
 
 ;; I hate backup files hanging everywhere
 (setq backup-directory-alist (quote ((".*" . "~/.emacs_backups/"))))
-
 ;; allow using a wheel-mouse
 (mouse-wheel-mode t)
 

@@ -53,6 +53,9 @@ let average (l: float list): stat =
   let n = read_stat (card l) in
   Single ((L.fsum l) /. n)
 
+let sum (l: float list): stat =
+  Single (L.fsum l)
+
 let stddev (l: float list): stat =
   let sqr x = x *. x in
   let n, sx, sx2 =
@@ -90,14 +93,15 @@ let single x =
   Single x
 
 let op_of_str = function
-  | "min" -> compose single L.min
-  | "max" -> compose single L.max
   | "avg" -> average
-  | "med" -> median
-  | "stddev" -> stddev
-  | "zscore" -> zscore
-  | "mad" -> mad
   | "card" -> card
+  | "mad" -> mad
+  | "max" -> compose single L.max
+  | "med" -> median
+  | "min" -> compose single L.min
+  | "stddev" -> stddev
+  | "sum" -> sum
+  | "zscore" -> zscore
   | other -> failwith ("Stats.op_of_str: unsupported op: " ^ other)
 
 let () =
@@ -105,7 +109,7 @@ let () =
   if argc = 1 then
     begin
       eprintf "usage:\n  \
-               %s -ops {card[,min[,max[,avg[,med[,stddev[,zscore[,mad...}\n  \
+               %s -ops {card[,min[,max[,avg[,med[,stddev[,zscore[,mad[,sum...}\n  \
         [-d <string>]: field delimiter string (default=None)\n  \
         [-f <int>]: field number (default=1)\n  \
         [-g <int>]: group by field number (default=None)\n  \

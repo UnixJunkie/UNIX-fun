@@ -1,0 +1,53 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := ["batteries"]
+--
+(* compute the Tanimoto score between two string sets;
+   one set is created per input file *)
+
+open Printf
+
+module L = BatList
+module SS = BatSet.String
+
+let with_in_file fn f =
+  let input = open_in_bin fn in
+  let res = f input in
+  close_in input;
+  res
+
+let string_set_of_file fn =
+  with_in_file fn (fun input ->
+      let res = ref SS.empty in
+      begin
+        try
+          while true do
+            res := SS.add (input_line input) !res
+          done
+        with End_of_file -> ()
+      end;
+      !res
+    )
+
+(* Tanimoto score / Jaccard index *)
+let tani s1 s2 =
+  let a = SS.cardinal s1 in
+  let b = SS.cardinal s2 in
+  let c = SS.(cardinal (inter s1 s2)) in
+  (float c) /. ((float a) +. (float b) -. (float c))
+
+let main () =
+  let argv = Sys.argv in
+  let argc = Array.length argv in
+  if argc != 3 then
+    (eprintf "usage:\n\
+              %s <filename> <filename>\n"
+       Sys.argv.(0);
+     exit 1);
+  let left_fn = argv.(1) in
+  let right_fn = argv.(2) in
+  (* ------------------------ *)
+  let left = string_set_of_file left_fn in
+  let right = string_set_of_file right_fn in
+  printf "%f\n" (tani left right)
+
+let () = main ()
