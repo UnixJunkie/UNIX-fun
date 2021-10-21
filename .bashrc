@@ -188,8 +188,9 @@ function dot2svg () {
 
 function eps2png () {
     output=`echo $1 | sed 's/\.eps$/\.png/g'`
-    convert -flatten -density 600 -units PixelsPerInch $1 $output
-    echo $output
+    # convert -flatten -density 600 -units PixelsPerInch $1 $output
+    inkscape $1 --export-png=$output
+    ls -l $output
 }
 
 function whatprovides () {
@@ -396,14 +397,14 @@ function crop_pdf () {
 function conda_setup () {
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/usr/local/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+__conda_setup="$('/home/fbr/usr/miniconda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
-    if [ -f "/usr/local/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/usr/local/anaconda3/etc/profile.d/conda.sh"
+    if [ -f "/home/fbr/usr/miniconda/etc/profile.d/conda.sh" ]; then
+        . "/home/fbr/usr/miniconda/etc/profile.d/conda.sh"
     else
-        export PATH="/usr/local/anaconda3/bin:$PATH"
+        export PATH="/home/fbr/usr/miniconda/bin:$PATH"
     fi
 fi
 unset __conda_setup
@@ -414,4 +415,9 @@ function deepchem () {
     conda_setup
     conda activate deepchem
     # to stop using it: conda deactivate
+}
+
+# forbid CUDA to use the GPU
+function no_gpu_computing () {
+    export CUDA_VISIBLE_DEVICES=-1
 }
