@@ -6,17 +6,15 @@ for f in "$@"; do
     filename=`basename "$f"`
     extension="${filename##*.}"
     case "$extension" in
-        mol2) egrep -c MOLECULE $f
+        mol2) grep -c -F MOLECULE $f
               ;;
         plr) egrep -c '^END$' $f # position and contrib per atom to cLogP
              ;;
         pqr) egrep -c ^COMPND $f
              ;;
-        sdf) grep -c '$$$$' $f
-             ;;
-        mol) grep -c '$$$$' $f
-             ;;
-        phar) grep -c '$$$$' $f # Pharao DB
+        sdf)
+        mol)
+        phar) grep -c -F '$$$$' $f # .phar: Pharao DB
              ;;
         smi) cat $f | wc -l
              ;;
