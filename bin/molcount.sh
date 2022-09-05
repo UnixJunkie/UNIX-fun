@@ -12,9 +12,7 @@ for f in "$@"; do
              ;;
         pqr) egrep -c ^COMPND $f
              ;;
-        sdf)
-        mol)
-        phar) grep -c -F '$$$$' $f # .phar: Pharao DB
+        sdf | mol | phar) grep -c -F '$$$$' $f # .phar: Pharao DB
              ;;
         smi) cat $f | wc -l
              ;;
