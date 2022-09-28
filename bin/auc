@@ -1,0 +1,47 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := ["batteries";"minicli";"line_oriented";"cpm"]
+--
+(* sort scores decreasingly; then compute AUC for a score-labels file *)
+
+open Printf
+
+module A = Array
+module CLI = Minicli.CLI
+module L = BatList
+module LO = Line_oriented
+module S = BatString
+
+module SL = struct
+  type t = bool * float (* (label, score) *)
+  let create label score =
+    (label, score)
+  let get_score (_, s) = s
+  let get_label (l, _) = l
+  (* to do a decreasing sort of a score labels list *)
+  let high_score_first_cmp (_, s1) (_, s2) =
+    BatFloat.compare s2 s1
+end
+
+module ROC = Cpm.MakeROC.Make(SL)
+
+let () =
+  let argc, args = CLI.init () in
+  if argc = 1 then
+    begin
+      eprintf "usage:\n  \
+               %s -i score_labels.tsv\n"
+        Sys.argv.(0);
+      exit 1
+    end;
+  let input_fn = CLI.get_string ["-i"] args in
+  CLI.finalize(); (* ------------------------------------------------------- *)
+  let score_labels =
+    let score_labels_l =
+      LO.map input_fn (fun line ->
+          Scanf.sscanf line "%f %d" (fun score label ->
+              SL.create (label = 1) score)
+        ) in
+    A.of_list score_labels_l in
+  ROC.rank_order_by_score_a score_labels;
+  let auc = ROC.fast_auc_a score_labels in
+  printf "%.3f\n" auc
