@@ -8,7 +8,7 @@ for f in "$@"; do
     case "$extension" in
         mol2) grep -c -F MOLECULE $f
               ;;
-        ph4) grep -c -F ':' $f
+        ph4 | pqrs) grep -c -F ':' $f
               ;;
         plr) egrep -c '^END$' $f # position and contrib per atom to cLogP
              ;;
