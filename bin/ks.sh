@@ -15,4 +15,4 @@ x <- as.numeric(a)
 y <- as.numeric(b)
 ks.test(x, y)
 EOF
-) #2>&1 | awk '/^D /{if($6 >= 0.05){print "KO"}}'
+) 2>&1 | egrep '^D = '
