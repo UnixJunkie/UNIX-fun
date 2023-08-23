@@ -5,6 +5,11 @@
 (column-number-mode t)
 (menu-bar-mode -1)
 
+(require 'package)
+(add-to-list 'package-archives
+             '("MELPA" . "https://melpa.org/packages/") t)
+(package-initialize)
+
 ;; ;; international language ;)
 ;; (ispell-change-dictionary "british")
 
@@ -111,6 +116,14 @@
 
 (global-set-key "\M-." 'merlin-locate)
 (global-set-key "\C-t" 'merlin-type-enclosing)
+;; disable merlin "highlighting" of errors which
+;; makes the whole buffer unreadable
+(setq merlin-error-after-save nil)
+(require 'use-package)
+(use-package flycheck-ocaml
+  :after merlin
+  :config
+  (flycheck-ocaml-setup))
 
 ;; enable use of the emacsclient command
 ;; (server-force-delete)
@@ -167,7 +180,8 @@ to the next non-whitespace character.  See
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(inhibit-startup-screen t))
+ '(inhibit-startup-screen t)
+ '(package-selected-packages '(flycheck-ocaml tuareg htmlize flycheck ess cmake-mode)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
