@@ -1,7 +1,7 @@
 #!/usr/bin/env ocamlscript
 Ocaml.packs := ["batteries";"minicli";"line_oriented";"cpm"]
 --
-(* sort scores decreasingly; then compute AUC for a score-labels file *)
+(* sort scores decreasingly; then compute AUC and logAUC of score-labels file *)
 
 open Printf
 
@@ -29,19 +29,27 @@ let () =
   if argc = 1 then
     begin
       eprintf "usage:\n  \
+               [-n]: negate scores\n  \
                %s -i score_labels.tsv\n"
         Sys.argv.(0);
       exit 1
     end;
   let input_fn = CLI.get_string ["-i"] args in
-  CLI.finalize(); (* ------------------------------------------------------- *)
+  (* -n: negate the scores in case of negative ones, like in docking *)
+  let negate = CLI.get_set_bool ["-n"] args in
+  CLI.finalize (); (* ------------------------------------------------------ *)
   let score_labels =
     let score_labels_l =
       LO.map input_fn (fun line ->
           Scanf.sscanf line "%f %d" (fun score label ->
-              SL.create (label = 1) score)
+              SL.create (label = 1)
+                (if negate then -.score
+                 else score)
+            )
         ) in
     A.of_list score_labels_l in
   ROC.rank_order_by_score_a score_labels;
   let auc = ROC.fast_auc_a score_labels in
-  printf "%.3f\n" auc
+  let roc = ROC.fast_roc_curve_a score_labels in
+  let log_AUC = ROC.log_AUC 0.001 (A.to_list roc) in
+  printf "%.3f %.3f\n" auc log_AUC
