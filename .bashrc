@@ -178,7 +178,7 @@ function dot2png () {
 
 # output each molecule to a file named by its index in the input
 function smi2svg () {
-    cut -f1 $1 | awk '{system("obabel -:\""$1"\" -O "NR-1".svg -xC")}'
+    cut -f1,2 $1 | awk '{system("obabel -:\""$1"\" -O "$2".svg -xC")}'
 }
 
 function dot2svg () {
@@ -372,7 +372,7 @@ function smi2eps () {
 function svg2pdf () {
     svg=$1
     pdf_out=`echo $1 | sed 's/\.svg$/\.pdf/g'`
-    inkscape $svg --export-pdf $pdf_out
+    inkscape $svg --export-filename=$pdf_out
 }
 
 # keyboard layout
