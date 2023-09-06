@@ -5,11 +5,6 @@
 (column-number-mode t)
 (menu-bar-mode -1)
 
-(require 'package)
-(add-to-list 'package-archives
-             '("MELPA" . "https://melpa.org/packages/") t)
-(package-initialize)
-
 ;; ;; international language ;)
 ;; (ispell-change-dictionary "british")
 
@@ -118,12 +113,7 @@
 (global-set-key "\C-t" 'merlin-type-enclosing)
 ;; disable merlin "highlighting" of errors which
 ;; makes the whole buffer unreadable
-(setq merlin-error-after-save nil)
-(require 'use-package)
-(use-package flycheck-ocaml
-  :after merlin
-  :config
-  (flycheck-ocaml-setup))
+(setq merlin-error-on-single-line t)
 
 ;; enable use of the emacsclient command
 ;; (server-force-delete)
