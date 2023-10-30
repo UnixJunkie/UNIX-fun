@@ -3,6 +3,7 @@
 # count number of molecules for various molecular file formats
 
 for f in "$@"; do
+    echo -n ${f}' '
     filename=`basename "$f"`
     extension="${filename##*.}"
     case "$extension" in
