@@ -1,0 +1,47 @@
+#!/usr/bin/env ocamlscript
+Ocaml.packs := ["batteries";"minicli";"line_oriented";"cpm"]
+--
+(* Compute Matthews' Correlation Coefficient (MCC)
+   given a classification threshold and a score-labels file *)
+
+open Printf
+
+module A = Array
+module CLI = Minicli.CLI
+module L = BatList
+module LO = Line_oriented
+module S = BatString
+
+module SL = struct
+  type t = bool * float (* (label, score) *)
+  let create label score =
+    (label, score)
+  let get_score (_, s) = s
+  let get_label (l, _) = l
+end
+
+module ROC = Cpm.MakeROC.Make(SL)
+
+let () =
+  let argc, args = CLI.init () in
+  if argc = 1 then
+    begin
+      eprintf "usage:\n  \
+               -i <filename>: input file\n  \
+               -t <float>: classification threshold\n  \
+               %s -t 0.5 -i score_labels.tsv\n"
+        Sys.argv.(0);
+      exit 1
+    end;
+  let input_fn = CLI.get_string ["-i"] args in
+  let threshold = CLI.get_float ["-t"] args in
+  CLI.finalize (); (* ------------------------------------------------------ *)
+  let score_labels =
+    LO.map input_fn (fun line ->
+        Scanf.sscanf line "%f %d" (fun score label ->
+            SL.create (label = 1)
+              score
+          )
+      ) in
+  let mcc = ROC.mcc threshold score_labels in
+  printf "%.3f\n" mcc
