@@ -1,18 +1,18 @@
-Emacs.toolBar:off
-Emacs*font:8x13
-Emacs*foreground:White
 Emacs*background:DarkSlateGray
-Emacs*geometry:80x93
-Emacs*cursorColor:red
 Emacs*borderWidth:0
+Emacs*cursorColor:red
+Emacs*foreground:White
+Emacs*geometry:80x93
 Emacs*internalBorder:0
+Emacs.toolBar:off
 
 XTerm*background:Black
 XTerm*foreground:White
 XTerm*metaSendsEscape:true
-xterm*vt100*geometry:80x104
-xterm*saveLines:10000
+XTerm*visualBell: True
 xterm*faceName: Monospace
 xterm*faceSize: 9
-xterm*scrollBar:true
 xterm*rightScrollBar:true
+xterm*saveLines:10000
+xterm*scrollBar:true
+xterm*vt100*geometry:80x69
