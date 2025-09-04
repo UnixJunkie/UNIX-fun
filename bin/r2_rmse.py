@@ -19,4 +19,4 @@ for line in open(input_fn).readlines():
 
 r2 = r2_score(xs, ys)
 rmse = root_mean_squared_error(xs, ys)
-print("R2: %.2f RMSE: %.2f" % (r2, rmse))
+print("N: %d R2: %.2f RMSE: %.2f" % (len(xs), r2, rmse))
