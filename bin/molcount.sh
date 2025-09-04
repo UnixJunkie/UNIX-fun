@@ -7,20 +7,20 @@ for f in "$@"; do
     filename=`basename "$f"`
     case "$filename" in
         *.mol2) grep -c -F MOLECULE $f
-              ;;
+                ;;
         *.ph4 | *.pqrs) grep -c -F ':' $f
-              ;;
+                        ;;
         *.plr) egrep -c '^END$' $f # position and contrib per atom to cLogP
-             ;;
+               ;;
         *.pqr) egrep -c ^COMPND $f
-             ;;
+               ;;
         *.sdf | *.mol | *.phar) grep -c -F '$$$$' $f # .phar: Pharao DB
-                          ;;
+                                ;;
         *.sdf.gz)
             zcat $f | grep -c -F '$$$$'
             ;;
         *.smi) cat $f | wc -l
-             ;;
+               ;;
         *) echo "molcount: unsupported file format: ."$f
            ;;
     esac
