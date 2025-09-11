@@ -17,7 +17,7 @@ for f in "$@"; do
         *.sdf | *.mol | *.phar) grep -c -F '$$$$' $f # .phar: Pharao DB
                                 ;;
         *.sdf.gz)
-            zcat $f | grep -c -F '$$$$'
+            zgrep -c -F '$$$$' $f
             ;;
         *.smi) cat $f | wc -l
                ;;
