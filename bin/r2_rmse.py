@@ -2,6 +2,7 @@
 
 import sys
 from sklearn.metrics import r2_score, root_mean_squared_error # type:ignore
+from scipy.stats import spearmanr # type:ignore
 
 input_fn = sys.argv[1]
 
@@ -19,4 +20,7 @@ for line in open(input_fn).readlines():
 
 r2 = r2_score(xs, ys)
 rmse = root_mean_squared_error(xs, ys)
-print("N: %d R2: %.2f RMSE: %.2f" % (len(xs), r2, rmse))
+res = spearmanr(xs, ys)
+rho = res.statistic
+_p = res.pvalue
+print("N: %d R2: %.2f RMSE: %.2f rho: %.2f" % (len(xs), r2, rmse, rho))
