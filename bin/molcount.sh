@@ -14,7 +14,7 @@ for f in "$@"; do
                ;;
         *.pqr) egrep -c ^COMPND $f
                ;;
-        *.sdf | *.mol | *.phar) grep -c -F '$$$$' $f # .phar: Pharao DB
+        *.sdf | *.mol | *.phar) egrep -c '\$\$\$\$' $f # .phar: Pharao DB
                                 ;;
         *.sdf.gz)
             zgrep -c -F '$$$$' $f
